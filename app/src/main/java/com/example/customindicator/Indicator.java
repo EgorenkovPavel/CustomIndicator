@@ -72,64 +72,62 @@ public class Indicator extends View {
         width = MeasureSpec.getSize(widthMeasureSpec);
         heigth = MeasureSpec.getSize(heightMeasureSpec);
 
-        cx = width/2 -10;
-        cy = heigth/2 -10;
+        cx = width/2 *0.95f;
+        cy = heigth/2 *0.95f;
 
         borderRadius = Math.min(cx, cy);
         scaleRadius = Math.round(borderRadius*0.8);
         centerRadius = Math.round(borderRadius*0.1);
-        arrowLength = Math.round(borderRadius*0.7);
-
+        arrowLength = Math.round(borderRadius*0.9);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
 
+        float shadowRadius = width/60;
+        float shadowX = cx/30;
+        float shadowY = cy/30;
+
         paint.setColor(Color.WHITE);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        paint.setStrokeWidth(5);
+        paint.setStrokeWidth(width/60);
 
-        paint.setShadowLayer(5.0f, 10.0f, 10.0f, Color.GRAY);
+        paint.setShadowLayer(shadowRadius, shadowX, shadowY, Color.GRAY);
         setLayerType(LAYER_TYPE_SOFTWARE, paint);
 
         oval.set(cx - borderRadius, cy - borderRadius, cx + borderRadius, cy + borderRadius);
         canvas.drawArc(oval, START_BORDER_ANGEL, SWEEP_BORDER_ANGEL, false, paint);
 
-        paint.setShadowLayer(0.0f, 10.0f, 10.0f, Color.BLACK);
-
+        paint.setShadowLayer(0.0f, shadowX, shadowY, Color.GRAY);
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.GREEN);
-        paint.setStrokeWidth(20);
+        paint.setStrokeWidth(borderRadius/10);
 
         oval.set(cx - scaleRadius, cy - scaleRadius, cx + scaleRadius, cy + scaleRadius);
         canvas.drawArc(oval, START_SCALE_ANGEL, SWEEP_SCALE_ANGEL, false, paint);
 
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.BLUE);
-
-        oval.set(cx-centerRadius, cy-centerRadius, cx+centerRadius, cy+centerRadius);
+        paint.setColor(Color.BLACK);
 
         arrow.moveTo(cx-centerRadius, cy);
         arrow.lineTo(cx, cy - arrowLength);
         arrow.lineTo(cx+centerRadius, cy);
-        arrow.addArc(oval, 0, 180);
         arrow.close();
 
         float angel = SWEEP_SCALE_ANGEL * value/(maxValue - minValue) - 90 - (180 - START_SCALE_ANGEL);
 
-        float x1 = Math.round(Math.cos(angel*Math.PI/180) * 15f);
-        float y1 = Math.round(Math.sin(angel*Math.PI/180) * 15f + 5);
+        float x1 = Math.round(Math.cos(angel*Math.PI/180) * shadowX);
+        float y1 = Math.round(Math.sin(angel*Math.PI/180) * shadowY + shadowY/2);
 
         // выводим результат
-        paint.setShadowLayer(5.0f, y1, x1, Color.GRAY);
+        paint.setShadowLayer(shadowRadius, y1, x1, Color.GRAY);
         canvas.rotate(angel, cx,cy);
-        //canvas.drawCircle(cx, cy, centerRadius, paint);
         canvas.drawPath(arrow, paint);
         canvas.rotate(-angel, cx,cy);
-        paint.setShadowLayer(0.0f, 10.0f, 10.0f, Color.GRAY);
+        paint.setShadowLayer(0.0f, shadowX, shadowY, Color.GRAY);
 
-        paint.setTextSize(50);
+        paint.setTextSize(borderRadius/5);
         paint.setColor(Color.BLACK);
         String text = String.format(Locale.getDefault(), "%d%%", value*100/(maxValue - minValue));
 
@@ -137,10 +135,9 @@ public class Indicator extends View {
         float mTextWidth = paint.measureText(text);
         float mTextHeight = textBoundRect.height();
 
-
         canvas.drawText(text,
                 cx - (mTextWidth / 2f),
-                cy + (mTextHeight /2f) + 100,
+                cy + (mTextHeight /2f) + borderRadius*0.8f,
                 paint
         );
     }
