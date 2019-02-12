@@ -1,19 +1,17 @@
 package com.example.customindicator;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
-import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.Nullable;
@@ -26,8 +24,9 @@ public class Indicator extends View {
     private static final float START_SCALE_ANGEL = 160;
     private static final float SWEEP_SCALE_ANGEL = sweepAngel(START_SCALE_ANGEL);
 
+    private List<Sector> sectors;
+
     private int width;
-    private int heigth;
     private float cx;
     private float cy;
     private float borderRadius;
@@ -63,6 +62,7 @@ public class Indicator extends View {
         oval = new RectF();
         arrow = new Path();
         textBoundRect = new Rect();
+        sectors = new ArrayList<>();
     }
 
     @Override
@@ -70,10 +70,10 @@ public class Indicator extends View {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         width = MeasureSpec.getSize(widthMeasureSpec);
-        heigth = MeasureSpec.getSize(heightMeasureSpec);
+        int heigth = MeasureSpec.getSize(heightMeasureSpec);
 
-        cx = width/2 *0.95f;
-        cy = heigth/2 *0.95f;
+        cx = width/2f *0.95f;
+        cy = heigth /2f *0.95f;
 
         borderRadius = Math.min(cx, cy);
         scaleRadius = Math.round(borderRadius*0.8);
@@ -84,13 +84,13 @@ public class Indicator extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
-        float shadowRadius = width/60;
+        float shadowRadius = width/60f;
         float shadowX = cx/30;
         float shadowY = cy/30;
 
         paint.setColor(Color.WHITE);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        paint.setStrokeWidth(width/60);
+        paint.setStrokeWidth(width/60f);
 
         paint.setShadowLayer(shadowRadius, shadowX, shadowY, Color.GRAY);
         setLayerType(LAYER_TYPE_SOFTWARE, paint);
@@ -101,11 +101,20 @@ public class Indicator extends View {
         paint.setShadowLayer(0.0f, shadowX, shadowY, Color.GRAY);
 
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.GREEN);
+        //paint.setColor(Color.GREEN);
         paint.setStrokeWidth(borderRadius/10);
 
         oval.set(cx - scaleRadius, cy - scaleRadius, cx + scaleRadius, cy + scaleRadius);
-        canvas.drawArc(oval, START_SCALE_ANGEL, SWEEP_SCALE_ANGEL, false, paint);
+        float a = SWEEP_SCALE_ANGEL/(maxValue - minValue);
+        float b = START_SCALE_ANGEL - SWEEP_SCALE_ANGEL*minValue/(maxValue - minValue);
+
+        float a1 = SWEEP_SCALE_ANGEL/(maxValue-minValue);
+
+        for (Sector sector:sectors){
+          paint.setColor(sector.getColor());
+          canvas.drawArc(oval, a*sector.getStart() + b, a1*(sector.getEnd()-sector.getStart()), false, paint);
+        }
+        //canvas.drawArc(oval, START_SCALE_ANGEL, SWEEP_SCALE_ANGEL, false, paint);
 
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.BLACK);
@@ -137,7 +146,7 @@ public class Indicator extends View {
 
         canvas.drawText(text,
                 cx - (mTextWidth / 2f),
-                cy + (mTextHeight /2f) + borderRadius*0.8f,
+                cy + (mTextHeight /2f) + borderRadius*0.7f,
                 paint
         );
     }
@@ -153,6 +162,35 @@ public class Indicator extends View {
     public void setValue(int value){
         this.value = value;
         invalidate();
+    }
+
+    public void addSector(Sector sector){
+        sectors.add(sector);
+        invalidate();
+    }
+
+    static class Sector{
+        private int start;
+        private int end;
+        private int color;
+
+        Sector(int start, int end, int color) {
+            this.start = start;
+            this.end = end;
+            this.color = color;
+        }
+
+        int getStart() {
+            return start;
+        }
+
+        int getEnd() {
+            return end;
+        }
+
+        int getColor() {
+            return color;
+        }
     }
 
 }

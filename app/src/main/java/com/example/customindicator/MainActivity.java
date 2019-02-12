@@ -2,6 +2,7 @@ package com.example.customindicator;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.SeekBar;
 
@@ -21,6 +22,9 @@ public class MainActivity extends AppCompatActivity {
 
         indicator.setMinValue(MIN);
         indicator.setMaxValue(MAX);
+        indicator.addSector(new Indicator.Sector(0, 10, Color.RED));
+        indicator.addSector(new Indicator.Sector(10, 70, Color.BLUE));
+        indicator.addSector(new Indicator.Sector(70, 100, Color.GREEN));
 
         seekBar.setLeft(MIN);
         seekBar.setRight(MAX);
